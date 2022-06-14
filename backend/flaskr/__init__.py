@@ -202,27 +202,37 @@ def create_app(test_config=None):
         category_id = body['quizCategory']
         # get the previous questions
         previous_questions = body['previousQuestions']
-        # query the db for all questions that match the category_id
+
+        # get all questions from the category
+
         questions = Question.query.filter(Question.category == category_id).all()
+
         # create a list of question objects
         allQuestions = [question.format() for question in questions]
+
         # create a list of question ids
-        allQuestionIds = [question['id'] for question in allQuestions]
+        all_question_ids = [question['id'] for question in allQuestions]
+
         # create a list of previous question ids
-        previousQuestionIds = [question['id'] for question in previous_questions]
-        # create a list of remaining question ids
-        remainingQuestionIds = [question['id'] for question in allQuestions if question['id'] not in previousQuestionIds]
-        # get a random question id
-        randomQuestionId = random.choice(remainingQuestionIds)
-        # get the question object
-        randomQuestion = Question.query.filter(Question.id == randomQuestionId).one_or_none()
+        previous_question_ids = [question['id'] for question in previous_questions]
+
+        # create a list of question ids that are not in the previous questions
+        new_question_ids = [question_id for question_id in all_question_ids if question_id not in previous_question_ids]
+
+        # get a random question id from the list of new question ids
+        random_question_id = random.choice(new_question_ids)
+
+        # get the question object from the random question id
+        random_question = Question.query.filter(Question.id == random_question_id).one_or_none()
+
         # if the question is not found, return an error
-        if randomQuestion is None:
+        if random_question is None:
             abort(404)
+
         # return the question object
         return jsonify({
             'success': True,
-            'question': randomQuestion.format()
+            'question': random_question.format()
         })
         
     """
