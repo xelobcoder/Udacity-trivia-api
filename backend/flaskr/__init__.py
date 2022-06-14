@@ -18,15 +18,17 @@ def create_app(test_config=None):
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
-    CORS(app,resources={r"/": {"origins": "*"}})
+    CORS(app, resources={'/': {'origins': '*'}})
 
     """
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+
+        return response
 
     """
     @TODO:
@@ -123,11 +125,13 @@ def create_app(test_config=None):
         )
         # add the question to the database
         question.insert()
+        print('inserted')
         # return a success message
         return jsonify({
             'success': True,
             'created': question.id
         })
+
 
     """
     @TODO:

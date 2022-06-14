@@ -6,6 +6,7 @@
   "dependencies": {
     "corsproxy": "^1.5.0",
     "jquery": "^3.4.1",
+    "nodemon": "^2.0.16",
     "npm": "^8.12.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",

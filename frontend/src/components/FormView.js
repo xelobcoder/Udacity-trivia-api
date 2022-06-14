@@ -18,6 +18,10 @@ class FormView extends Component {
     $.ajax({
       url: `/categories`, //TODO: update request URL
       type: 'GET',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+      },
       success: (result) => {
         this.setState({ categories: result.categories });
         return;
