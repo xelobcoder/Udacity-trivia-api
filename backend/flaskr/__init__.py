@@ -63,8 +63,23 @@ def create_app(test_config=None):
     """
     @app.route('/questions')
     def get_questions():
-        # query the db for all questions
-        questions = Question.query.all()
+         #get the current category from the request query
+        current_category = request.args.get('currentCategory', 'null', type=str)
+        print(current_category)
+        # get the current category id
+        current_category_id = None
+
+        if current_category != 'null':
+            current= Category.query.filter(Category.type == current_category).first()
+            current_category_id = current.id
+        
+        questions = None
+        #  determine where to query the db based on category provided in the query
+        if current_category_id is not None:
+            questions = Question.query.filter(Question.category == current_category_id).all()
+        else:
+            questions = Question.query.all()
+
         # create a list of question objects
         allQuestions = [question.format() for question in questions]
         #handle category list format 
@@ -75,8 +90,7 @@ def create_app(test_config=None):
         questions = allQuestions[(page-1)*QUESTIONS_PER_PAGE:page*QUESTIONS_PER_PAGE]
          # get the total number of questions
         total_questions = len(questions)
-        #get the current category from the request query
-        current_category = request.args.get('categoryCategory', None)
+       
         # return the list of question objects
         print(request.args)
         return jsonify({
