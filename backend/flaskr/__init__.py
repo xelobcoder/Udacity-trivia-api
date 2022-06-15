@@ -166,7 +166,8 @@ def create_app(test_config=None):
         return jsonify({
             'success': True,
             'questions': allQuestions,
-            'total_questions': len(allQuestions)
+            'total_questions': len(allQuestions),
+            'current_category': None,
         })
     """
     @TODO:
