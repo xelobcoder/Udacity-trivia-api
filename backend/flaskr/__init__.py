@@ -46,7 +46,6 @@ def create_app(test_config=None):
 
         # return the list of category objects
         return jsonify({
-            'success': True,
             'categories': allCategories
         })
 
@@ -72,10 +71,10 @@ def create_app(test_config=None):
         categories  =  {category.id: category.type for category in Category.query.all()}
         # get the page number
         page = request.args.get('page', 1, type=int)
-        # get the total number of questions
-        total_questions = len(allQuestions)
         # get the questions for the current page
         questions = allQuestions[(page-1)*QUESTIONS_PER_PAGE:page*QUESTIONS_PER_PAGE]
+         # get the total number of questions
+        total_questions = len(questions)
         # return the list of question objects
         print(categories)
         return jsonify({
@@ -83,7 +82,7 @@ def create_app(test_config=None):
             'questions': questions,
             'total_questions': total_questions,
             'categories': categories,
-            'current_category': None,
+            'current_category': None
         })
     """
     @TODO:
@@ -190,10 +189,9 @@ def create_app(test_config=None):
         # return the list of question objects
 
         return jsonify({
-            'success': True,
-            'current_category': category_id,
             'questions': allQuestions,
-            'total_questions': len(allQuestions)
+            'total_questions': len(allQuestions),
+            'currentCategory': Category.query.filter(Category.id == category_id).one_or_none().type
         })
     """
     @TODO:
