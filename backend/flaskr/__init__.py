@@ -39,8 +39,11 @@ def create_app(test_config=None):
     def get_categories():
         # query the db for all categories
         categories = Category.query.all()
-        # create a list of category objects
-        allCategories = [category.format() for category in categories]
+        # create a dictionary of categories
+        allCategories = {}
+        for category in categories:
+            allCategories[category.id] = category.type
+
         # return the list of category objects
         return jsonify({
             'success': True,
@@ -66,17 +69,22 @@ def create_app(test_config=None):
         # create a list of question objects
         allQuestions = [question.format() for question in questions]
         #handle category list format 
-        categories  = [category.format() for category in Category.query.all()]
+        categories  =  {category.id: category.type for category in Category.query.all()}
+        # get the page number
+        page = request.args.get('page', 1, type=int)
+        # get the total number of questions
+        total_questions = len(allQuestions)
+        # get the questions for the current page
+        questions = allQuestions[(page-1)*QUESTIONS_PER_PAGE:page*QUESTIONS_PER_PAGE]
         # return the list of question objects
-
+        print(categories)
         return jsonify({
             'success': True,
-            'questions': allQuestions,
-            'total_questions': len(allQuestions),
+            'questions': questions,
+            'total_questions': total_questions,
+            'categories': categories,
             'current_category': None,
-            'categories': categories
         })
-
     """
     @TODO:
     Create an endpoint to DELETE question using a question ID.
@@ -179,8 +187,10 @@ def create_app(test_config=None):
         # create a list of question objects
         allQuestions = [question.format() for question in questions]
         # return the list of question objects
+
         return jsonify({
             'success': True,
+            'current_category': category_id,
             'questions': allQuestions,
             'total_questions': len(allQuestions)
         })
@@ -196,49 +206,64 @@ def create_app(test_config=None):
     and shown whether they were correct or not.
     """
     @app.route('/quizzes', methods=['POST'])
-    def get_quiz_questions():
+    def play_quiz_questions():
         # get the data from the request
         body = request.get_json()
+        print(body)
         # if the data is not valid, return an error
-        if not ('quizCategory' in body and 'previousQuestions' in body):
+        if not ('quiz_category' in body and 'previous_questions' in body):
             abort(422)  
         # get the category id
-        category_id = body['quizCategory']
+        category_id = body['quiz_category'] 
+        # get the category type from category_id dictionary
+        category_type = category_id['type']
+        # get category id from the category_id dictionary
+        categoryid = category_id['id']
         # get the previous questions
-        previous_questions = body['previousQuestions']
+        previous_questions = body['previous_questions']
+        # get last previous question
 
-        # get all questions from the category
+        last_question = None
+        if len(previous_questions) > 0:
+            last_question = previous_questions[-1]
+        # query the db for all questions that match the category_id
+        
+        category_questions = None
+        quiz_category = None
+        if category_type == 'click' and categoryid == 0:
+            category_questions = Question.query.all()
+            quiz_category = 'All'
+        else:
+            category_questions = Question.query.filter(Question.category == categoryid).all()
+            quiz_category = Category.query.filter(Category.id == categoryid).one_or_none()
+        # get random question from the category_questions
+        random_question = None
+        if len(category_questions) > 0:
+            random_question = category_questions[random.randint(0, len(category_questions) - 1)]
+        
+        if random_question is not None and random_question.id not in previous_questions:
+            question = random_question.format()
+            return jsonify({
+                'success': True,
+                'question': question
+            })
+        elif random_question is not None and random_question.id in previous_questions:
+            if len(previous_questions) == len(category_questions):
+                return jsonify({
+                    'success': False,
+                    'question': None
+                })
+            else:
+                return play_quiz_questions()
+  
+       
 
-        questions = Question.query.filter(Question.category == category_id).all()
+        
 
-        # create a list of question objects
-        allQuestions = [question.format() for question in questions]
-
-        # create a list of question ids
-        all_question_ids = [question['id'] for question in allQuestions]
-
-        # create a list of previous question ids
-        previous_question_ids = [question['id'] for question in previous_questions]
-
-        # create a list of question ids that are not in the previous questions
-        new_question_ids = [question_id for question_id in all_question_ids if question_id not in previous_question_ids]
-
-        # get a random question id from the list of new question ids
-        random_question_id = random.choice(new_question_ids)
-
-        # get the question object from the random question id
-        random_question = Question.query.filter(Question.id == random_question_id).one_or_none()
-
-        # if the question is not found, return an error
-        if random_question is None:
-            abort(404)
-
-        # return the question object
-        return jsonify({
-            'success': True,
-            'question': random_question.format()
-        })
-
+     
+               
+        
+        
     """
     @TODO:
     Create error handlers for all expected errors
