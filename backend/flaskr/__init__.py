@@ -189,6 +189,7 @@ def create_app(test_config=None):
         # return the list of question objects
 
         return jsonify({
+            'success': True,
             'questions': allQuestions,
             'total_questions': len(allQuestions),
             'currentCategory': Category.query.filter(Category.id == category_id).one_or_none().type
